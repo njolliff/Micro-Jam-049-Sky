@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bad71986fcc7ed42a619702c4c01633, type: 3}
+  m_Name: CloudTable
+  m_EditorClassIdentifier: Assembly-CSharp::CloudLootTable
+  entries:
+  - cloudType: 0
+    weight: 50
+  - cloudType: 1
+    weight: 12.5
+  - cloudType: 2
+    weight: 12.5
+  - cloudType: 3
+    weight: 25
+  bouncyCloudTable: {fileID: 11400000, guid: d9cdc7caa9c790147b4b32fc1088d2e7, type: 2}
+  normalCloudPrefab: {fileID: 2048773353787493703, guid: f500387aca10540418834c869662ff86, type: 3}
+  fastCloudPrefab: {fileID: 2048773353787493703, guid: 6734ab2a08414894f916064c408fa4ca, type: 3}
+  slowCloudPrefab: {fileID: 2048773353787493703, guid: 16500c2efda7bfc47af32d520df56da2, type: 3}
