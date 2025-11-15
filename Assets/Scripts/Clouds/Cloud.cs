@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Cloud : MonoBehaviour
@@ -35,6 +36,11 @@ public class Cloud : MonoBehaviour
 
     void Update()
     {
+        MoveCloud();
+    }
+
+    protected void MoveCloud()
+    {
         // Move, then check if the cloud has reached the end of the screen
         transform.position += moveSpeed * Time.deltaTime * movementDirection;
 
@@ -44,7 +50,6 @@ public class Cloud : MonoBehaviour
             movementDirection = -movementDirection;
         }
     }
-
     public void SpawnBattery(GameObject batteryPrefab)
     {
         // Spawn battery as a child object 0.5 units above the current position

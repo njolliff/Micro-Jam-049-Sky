@@ -7,11 +7,14 @@ public class Player : MonoBehaviour
     [Header("References")]
     [SerializeField] private Rigidbody2D _rb;
     [SerializeField] private BoxCollider2D _collider;
+    [SerializeField] GameObject _gameOverScreen;
 
     [Header("Movement")]
     public float energy = 100f;
     public bool unlimitedEnergy = false;
     [SerializeField] private float _boostStrength = 1f, _energyDrainSpeed = 1f, _tiltStrength = 1f, _maxTorque = 0.2f;
+
+    public int currentHeight => (int)transform.position.y;
 
     private float _movementInput = 0;
     private bool _isBoosting = false, _canMove = true;
@@ -32,11 +35,15 @@ public class Player : MonoBehaviour
     }
     #endregion
 
+    #region Helper Methods
     private void HandleBoost()
     {
         // Ensure player has energy / infinity energy is enabled
         if (energy > 0 || unlimitedEnergy)
         {
+            // Set parent to null for clean takeoffs on platforms
+            transform.SetParent(null);
+
             // Apply force
             _rb.AddForce(transform.up * _boostStrength, ForceMode2D.Force);
 
@@ -49,6 +56,15 @@ public class Player : MonoBehaviour
             }
         }
     }
+    private void GameOver()
+    {
+        // Pause game
+        Time.timeScale = 0;
+
+        // Enable game over screen
+        _gameOverScreen.SetActive(true);
+    }
+    #endregion
 
     #region Input Methods
     public void OnMove(InputAction.CallbackContext ctx)
@@ -61,6 +77,36 @@ public class Player : MonoBehaviour
         // Enable boosting when the button is pressed and disable it when it is released
         if (ctx.performed) _isBoosting = true;
         if (ctx.canceled) _isBoosting = false;
+    }
+    #endregion
+
+    #region Collisions
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Platform"))
+        {
+            // Parent player to platform so they move with the platform, but only if colliding from above
+            foreach (var contact in collision.contacts)
+            {
+                if (contact.normal.y > 0.5f)
+                    transform.SetParent(collision.transform);
+            }
+
+            // If grounded with no energy, player lost
+            if (energy <= 0)
+                GameOver();
+        }
+        else if (collision.gameObject.CompareTag("Ground"))
+        {
+            // If grounded with no energy, player lost
+            if (energy <= 0)
+                GameOver();
+        }
+    }
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Platform"))
+            transform.SetParent(null);
     }
     #endregion
 }
