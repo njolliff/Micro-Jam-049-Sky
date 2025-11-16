@@ -22,4 +22,10 @@ public class Scenemanager : MonoBehaviour
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
+
+    [ContextMenu("Load Gameplay Scene")]
+    public void LoadGameplayScene()
+    {
+        SceneManager.LoadScene("Gameplay");
+    }
 }

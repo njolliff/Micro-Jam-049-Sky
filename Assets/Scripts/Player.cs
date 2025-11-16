@@ -89,12 +89,14 @@ public class Player : MonoBehaviour
             foreach (var contact in collision.contacts)
             {
                 if (contact.normal.y > 0.5f)
+                {
                     transform.SetParent(collision.transform);
-            }
 
-            // If grounded with no energy, player lost
-            if (energy <= 0)
-                GameOver();
+                    // If grounded with no energy, player lost
+                    if (energy <= 0)
+                        GameOver();
+                }
+            }
         }
         else if (collision.gameObject.CompareTag("Ground"))
         {
