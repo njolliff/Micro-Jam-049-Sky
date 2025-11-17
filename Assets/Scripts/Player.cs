@@ -7,18 +7,32 @@ public class Player : MonoBehaviour
     [Header("References")]
     [SerializeField] private Rigidbody2D _rb;
     [SerializeField] private BoxCollider2D _collider;
-    [SerializeField] GameObject _gameOverScreen;
+    [SerializeField] private AudioSource _boostAudio;
+    [SerializeField] private ParticleSystem _boostParticles;
+    [SerializeField] private GameObject _gameOverScreen;
+    [SerializeField] private HighscoreText _highscoreText;
 
     [Header("Movement")]
     public float energy = 100f;
     public bool unlimitedEnergy = false;
-    [SerializeField] private float _boostStrength = 1f, _energyDrainSpeed = 1f, _tiltStrength = 1f, _maxTorque = 0.2f;
+    [SerializeField] private float _maxVelocity, _boostStrength = 1f, _energyDrainSpeed = 1f, _tiltStrength = 1f, _maxTorque = 0.2f;
 
     public int currentHeight => (int)transform.position.y;
 
+    private ParticleSystem.MinMaxCurve _boostEmissionRate;
     private float _movementInput = 0;
     private bool _isBoosting = false, _canMove = true;
     #endregion
+
+    void Awake()
+    {
+        // Start highscore at 0
+        if (!PlayerPrefs.HasKey("Highscore"))
+            PlayerPrefs.SetInt("Highscore", 0);
+
+        // Get default boost emission rate
+        _boostEmissionRate = _boostParticles.emission.rateOverTime;
+    }
 
     #region Update
     void FixedUpdate()
@@ -31,6 +45,9 @@ public class Player : MonoBehaviour
 
             // Apply boost if boosting
             if (_isBoosting) HandleBoost();
+
+            // Limit velocity
+            _rb.linearVelocityY = Mathf.Clamp(_rb.linearVelocityY, -_maxVelocity, _maxVelocity);
         }
     }
     #endregion
@@ -54,12 +71,40 @@ public class Player : MonoBehaviour
                 if (updatedenergy < 0) energy = 0;
                 else energy = updatedenergy;   
             }
+
+            // Play boost audio
+            if (!_boostAudio.isPlaying) 
+                _boostAudio.Play();
+
+            // Emit boost particles
+            var emission = _boostParticles.emission;
+            emission.enabled = true;
+            if (!_boostParticles.isPlaying) 
+                _boostParticles.Play();
+        }
+        // If the player is still holding boost but has run out of boost
+        else
+        {
+            // Stop boost audio
+            if (_boostAudio.isPlaying) 
+                _boostAudio.Stop();
+
+            // Stop emitting boost particles
+            var emission = _boostParticles.emission;
+            emission.enabled = false;
         }
     }
     private void GameOver()
     {
         // Pause game
         Time.timeScale = 0;
+
+        // Check new highscore
+        if (currentHeight > PlayerPrefs.GetInt("Highscore"))
+        {
+            PlayerPrefs.SetInt("Highscore", currentHeight);
+            _highscoreText.newHighscore = true;
+        }
 
         // Enable game over screen
         _gameOverScreen.SetActive(true);
@@ -75,8 +120,24 @@ public class Player : MonoBehaviour
     public void OnBoost(InputAction.CallbackContext ctx)
     {
         // Enable boosting when the button is pressed and disable it when it is released
-        if (ctx.performed) _isBoosting = true;
-        if (ctx.canceled) _isBoosting = false;
+        if (ctx.performed)
+        {
+            // Enable boosting
+            _isBoosting = true;
+        }
+        if (ctx.canceled)
+        {
+            // Disable boosting
+            _isBoosting = false;
+
+            // Stop boost audio
+            if (_boostAudio.isPlaying) 
+                _boostAudio.Stop();
+
+            // Stop emitting boost particles
+            var emission = _boostParticles.emission;
+            emission.enabled = false;
+        }
     }
     #endregion
 
@@ -108,7 +169,10 @@ public class Player : MonoBehaviour
     void OnCollisionExit2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Platform"))
-            transform.SetParent(null);
+        {
+            if (transform.parent != null && transform.parent.gameObject.activeInHierarchy)
+                transform.SetParent(null);
+        }
     }
     #endregion
 }

@@ -34,6 +34,11 @@ public class Cloud : MonoBehaviour
         }
     }
 
+    void OnDestroy()
+    {
+        transform.DetachChildren();
+    }
+
     void Update()
     {
         MoveCloud();
